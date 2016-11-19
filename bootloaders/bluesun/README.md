@@ -1,4 +1,14 @@
-# Arduino Zero Bootloader
+# Blue Sun OFP Bootloader
+
+## 0- Explanation
+
+This is basically the same as the Arduino bootloader which is basically the
+same as Atmel's SAM-BA bootloader but:
+
+- I ripped out all the LED stuff
+- I ripped out all the UART stuff
+- I changed the enter-bootloader trigger to pin not double-reset
+- I changed the pin to GP3 on the blue sun board
 
 ## 1- Prerequisites
 
@@ -92,4 +102,3 @@ For example for the **Arduino MKR1000** we use `board_definitions_arduino_mkr100
 ```
 BOARD_ID=arduino_mkr1000 NAME=samd21_sam_ba_arduino_mkr1000 make clean all
 ```
-

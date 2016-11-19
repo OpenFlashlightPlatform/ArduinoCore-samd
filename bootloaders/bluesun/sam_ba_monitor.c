@@ -20,12 +20,9 @@
 #include "sam.h"
 #include <string.h>
 #include "sam_ba_monitor.h"
-#include "sam_ba_serial.h"
-#include "board_driver_serial.h"
 #include "board_driver_usb.h"
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
-#include "board_driver_led.h"
 
 const char RomBOOT_Version[] = SAM_BA_VERSION;
 const char RomBOOT_ExtendedCapabilities[] = "[Arduino:XYZ]";
@@ -49,21 +46,7 @@ typedef struct
   uint32_t (*getdata_xmd)(void* data, uint32_t length);
 } t_monitor_if;
 
-#if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
-/* Initialize structures with function pointers from supported interfaces */
-const t_monitor_if uart_if =
-{
-  .put_c =       serial_putc,
-  .get_c =       serial_getc,
-  .is_rx_ready = serial_is_rx_ready,
-  .putdata =     serial_putdata,
-  .getdata =     serial_getdata,
-  .putdata_xmd = serial_putdata_xmd,
-  .getdata_xmd = serial_getdata_xmd
-};
-#endif
 
-#if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
 //Please note that USB doesn't use Xmodem protocol, since USB already includes flow control and data verification
 //Data are simply forwarded without further coding.
 const t_monitor_if usbcdc_if =
@@ -76,7 +59,6 @@ const t_monitor_if usbcdc_if =
   .putdata_xmd =   cdc_write_buf,
   .getdata_xmd =   cdc_read_buf_xmd
 };
-#endif
 
 /* The pointer to the interface object use by the monitor */
 t_monitor_if * ptr_monitor_if;
@@ -85,27 +67,12 @@ t_monitor_if * ptr_monitor_if;
 volatile bool b_terminal_mode = false;
 volatile bool b_sam_ba_interface_usart = false;
 
-/* Pulse generation counters to keep track of the time remaining for each pulse type */
-#define TX_RX_LED_PULSE_PERIOD 100
-volatile uint16_t txLEDPulse = 0; // time remaining for Tx LED pulse
-volatile uint16_t rxLEDPulse = 0; // time remaining for Rx LED pulse
-
 void sam_ba_monitor_init(uint8_t com_interface)
 {
-#if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
-  //Selects the requested interface for future actions
-  if (com_interface == SAM_BA_INTERFACE_USART)
-  {
-    ptr_monitor_if = (t_monitor_if*) &uart_if;
-    b_sam_ba_interface_usart = true;
-  }
-#endif
-#if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
   if (com_interface == SAM_BA_INTERFACE_USBCDC)
   {
     ptr_monitor_if = (t_monitor_if*) &usbcdc_if;
   }
-#endif
 }
 
 /*
@@ -116,9 +83,6 @@ static uint32_t sam_ba_putdata(t_monitor_if* pInterface, void const* data, uint3
 	uint32_t result ;
 
 	result=pInterface->putdata(data, length);
-
-	LEDTX_on();
-	txLEDPulse = TX_RX_LED_PULSE_PERIOD;
 
 	return result;
 }
@@ -132,12 +96,6 @@ static uint32_t sam_ba_getdata(t_monitor_if* pInterface, void* data, uint32_t le
 
 	result=pInterface->getdata(data, length);
 
-	if (result)
-	{
-		LEDRX_on();
-		rxLEDPulse = TX_RX_LED_PULSE_PERIOD;
-	}
-
 	return result;
 }
 
@@ -150,9 +108,6 @@ static uint32_t sam_ba_putdata_xmd(t_monitor_if* pInterface, void const* data, u
 
 	result=pInterface->putdata_xmd(data, length);
 
-	LEDTX_on();
-	txLEDPulse = TX_RX_LED_PULSE_PERIOD;
-
 	return result;
 }
 
@@ -164,12 +119,6 @@ static uint32_t sam_ba_getdata_xmd(t_monitor_if* pInterface, void* data, uint32_
 	uint32_t result ;
 
 	result=pInterface->getdata_xmd(data, length);
-
-	if (result)
-	{
-		LEDRX_on();
-		rxLEDPulse = TX_RX_LED_PULSE_PERIOD;
-	}
 
 	return result;
 }
@@ -527,11 +476,7 @@ static void sam_ba_monitor_loop(void)
 
 void sam_ba_monitor_sys_tick(void)
 {
-	/* Check whether the TX or RX LED one-shot period has elapsed.  if so, turn off the LED */
-	if (txLEDPulse && !(--txLEDPulse))
-		LEDTX_off();
-	if (rxLEDPulse && !(--rxLEDPulse))
-		LEDRX_off();
+
 }
 
 /**

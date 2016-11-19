@@ -1,6 +1,7 @@
 /*
   Copyright (c) 2015 Arduino LLC.  All right reserved.
   Copyright (c) 2015 Atmel Corporation/Thibaut VIARD.  All right reserved.
+  Copyright (c) 2016 Michael Andersen <m.andersen@cs.berkeley.edu>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,43 +18,25 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+
 #ifndef _BOARD_DEFINITIONS_H_
 #define _BOARD_DEFINITIONS_H_
 
 /*
  * USB device definitions
  */
-#define STRING_PRODUCT "Genuino Zero"
+#define STRING_PRODUCT "Blue Sun OFP"
 #define USB_VID_HIGH   0x23
 #define USB_VID_LOW    0x41
-#define USB_PID_HIGH   0x02
+#define USB_PID_HIGH   0x00
 #define USB_PID_LOW    0x4D
 
-/*
- * If BOOT_DOUBLE_TAP_ADDRESS is defined the bootloader is started by
- * quickly tapping two times on the reset button.
- * BOOT_DOUBLE_TAP_ADDRESS must point to a free SRAM cell that must not
- * be touched from the loaded application.
- */
-#define BOOT_DOUBLE_TAP_ADDRESS           (0x20007FFCul)
-#define BOOT_DOUBLE_TAP_DATA              (*((volatile uint32_t *) BOOT_DOUBLE_TAP_ADDRESS))
 
 /*
  * If BOOT_LOAD_PIN is defined the bootloader is started if the selected
  * pin is tied LOW.
  */
-//#define BOOT_LOAD_PIN                     PIN_PA21 // Pin 7
-//#define BOOT_LOAD_PIN                     PIN_PA15 // Pin 5
-
-#define BOOT_USART_MODULE                 SERCOM0
-#define BOOT_USART_BUS_CLOCK_INDEX        PM_APBCMASK_SERCOM0
-#define BOOT_USART_PER_CLOCK_INDEX        GCLK_ID_SERCOM0_CORE
-#define BOOT_USART_PAD_SETTINGS           UART_RX_PAD3_TX_PAD2
-#define BOOT_USART_PAD3                   PINMUX_PA11C_SERCOM0_PAD3
-#define BOOT_USART_PAD2                   PINMUX_PA10C_SERCOM0_PAD2
-#define BOOT_USART_PAD1                   PINMUX_UNUSED
-#define BOOT_USART_PAD0                   PINMUX_UNUSED
-
+#define BOOT_LOAD_PIN                     PIN_PA13 // GP3
 
 /* Master clock frequency */
 #define CPU_FREQUENCY                     (48000000ul)
@@ -66,16 +49,9 @@
 #define NVM_SW_CALIB_DFLL48M_COARSE_VAL   (58)
 #define NVM_SW_CALIB_DFLL48M_FINE_VAL     (64)
 
-/*
- * LEDs definitions
- */
-#define BOARD_LED_PORT                    (0)
-#define BOARD_LED_PIN                     (17)
-
-#define BOARD_LEDRX_PORT                  (1)
-#define BOARD_LEDRX_PIN                   (3)
-
-#define BOARD_LEDTX_PORT                  (0)
-#define BOARD_LEDTX_PIN                   (27)
-
 #endif // _BOARD_DEFINITIONS_H_
+
+// Common definitions
+// ------------------
+
+#define BOOT_PIN_MASK (1U << (BOOT_LOAD_PIN & 0x1f))

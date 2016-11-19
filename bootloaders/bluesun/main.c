@@ -20,18 +20,12 @@
 #include <stdio.h>
 #include <sam.h>
 #include "sam_ba_monitor.h"
-#include "sam_ba_serial.h"
 #include "board_definitions.h"
-#include "board_driver_led.h"
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
 
 extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
 extern void board_init(void);
-
-#if (defined DEBUG) && (DEBUG == 1)
-volatile uint32_t* pulSketch_Start_Address;
-#endif
 
 static volatile bool main_b_cdc_enable = false;
 
@@ -41,43 +35,8 @@ static volatile bool main_b_cdc_enable = false;
  */
 static void check_start_application(void)
 {
-//  LED_init();
-//  LED_off();
 
-#if defined(BOOT_DOUBLE_TAP_ADDRESS)
-  #define DOUBLE_TAP_MAGIC 0x07738135
-  if (PM->RCAUSE.bit.POR)
-  {
-    /* On power-on initialize double-tap */
-    BOOT_DOUBLE_TAP_DATA = 0;
-  }
-  else
-  {
-    if (BOOT_DOUBLE_TAP_DATA == DOUBLE_TAP_MAGIC)
-    {
-      /* Second tap, stay in bootloader */
-      BOOT_DOUBLE_TAP_DATA = 0;
-      return;
-    }
-
-    /* First tap */
-    BOOT_DOUBLE_TAP_DATA = DOUBLE_TAP_MAGIC;
-
-    /* Wait 0.5sec to see if the user tap reset again.
-     * The loop value is based on SAMD21 default 1MHz clock @ reset.
-     */
-    for (uint32_t i=0; i<125000; i++) /* 500ms */
-      /* force compiler to not optimize this... */
-      __asm__ __volatile__("");
-
-    /* Timeout happened, continue boot... */
-    BOOT_DOUBLE_TAP_DATA = 0;
-  }
-#endif
-
-#if (!defined DEBUG) || ((defined DEBUG) && (DEBUG == 0))
-uint32_t* pulSketch_Start_Address;
-#endif
+  uint32_t* pulSketch_Start_Address;
 
   /*
    * Test sketch stack pointer @ &__sketch_vectors_ptr
@@ -108,8 +67,6 @@ uint32_t* pulSketch_Start_Address;
     return;
   }
 
-/*
-#if defined(BOOT_LOAD_PIN)
   volatile PortGroup *boot_port = (volatile PortGroup *)(&(PORT->Group[BOOT_LOAD_PIN / 32]));
   volatile bool boot_en;
 
@@ -126,10 +83,6 @@ uint32_t* pulSketch_Start_Address;
     // Stay in bootloader
     return;
   }
-#endif
-*/
-
-//  LED_on();
 
   /* Rebase the Stack Pointer */
   __set_MSP( (uint32_t)(__sketch_vectors_ptr) );
@@ -141,24 +94,13 @@ uint32_t* pulSketch_Start_Address;
   asm("bx %0"::"r"(*pulSketch_Start_Address));
 }
 
-#if DEBUG_ENABLE
-#	define DEBUG_PIN_HIGH 	port_pin_set_output_level(BOOT_LED, 1)
-#	define DEBUG_PIN_LOW 	port_pin_set_output_level(BOOT_LED, 0)
-#else
-#	define DEBUG_PIN_HIGH 	do{}while(0)
-#	define DEBUG_PIN_LOW 	do{}while(0)
-#endif
-
 /**
  *  \brief SAMD21 SAM-BA Main loop.
  *  \return Unused (ANSI-C compatibility).
  */
 int main(void)
 {
-#if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
   P_USB_CDC pCdc;
-#endif
-  DEBUG_PIN_HIGH;
 
   /* Jump in application if condition is satisfied */
   check_start_application();
@@ -168,23 +110,7 @@ int main(void)
   board_init();
   __enable_irq();
 
-#if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
-  /* UART is enabled in all cases */
-  serial_open();
-#endif
-
-#if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
   pCdc = usb_init();
-#endif
-
-  DEBUG_PIN_LOW;
-
-  /* Initialize LEDs */
-  LED_init();
-  LEDRX_init();
-  LEDRX_off();
-  LEDTX_init();
-  LEDTX_off();
 
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
@@ -192,13 +118,13 @@ int main(void)
   /* Wait for a complete enum on usb or a '#' char on serial line */
   while (1)
   {
-#if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
+
     if (pCdc->IsConfigured(pCdc) != 0)
     {
       main_b_cdc_enable = true;
     }
 
-    /* Check if a USB enumeration has succeeded and if comm port has been opened */
+    /* Check if a USB enumeration has succeeded */
     if (main_b_cdc_enable)
     {
       sam_ba_monitor_init(SAM_BA_INTERFACE_USBCDC);
@@ -208,26 +134,10 @@ int main(void)
         sam_ba_monitor_run();
       }
     }
-#endif
-
-#if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
-    /* Check if a '#' has been received */
-    if (!main_b_cdc_enable && serial_sharp_received())
-    {
-      sam_ba_monitor_init(SAM_BA_INTERFACE_USART);
-      /* SAM-BA on Serial loop */
-      while(1)
-      {
-        sam_ba_monitor_run();
-      }
-    }
-#endif
   }
 }
 
 void SysTick_Handler(void)
 {
-  LED_pulse();
-
   sam_ba_monitor_sys_tick();
 }

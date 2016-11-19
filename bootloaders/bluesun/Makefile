@@ -83,16 +83,13 @@ LDFLAGS+=-Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbol
 # -----------------------------------------------------------------------------
 # Source files and objects
 SOURCES= \
-  board_driver_led.c \
-  board_driver_serial.c \
   board_driver_usb.c \
   board_init.c \
   board_startup.c \
   main.c \
   sam_ba_usb.c \
   sam_ba_cdc.c \
-  sam_ba_monitor.c \
-  sam_ba_serial.c
+  sam_ba_monitor.c
 
 OBJECTS=$(addprefix $(BUILD_PATH)/, $(SOURCES:.c=.o))
 DEPS=$(addprefix $(BUILD_PATH)/, $(SOURCES:.c=.d))
