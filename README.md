@@ -1,59 +1,36 @@
-# Arduino Core for SAMD21 CPU
+# Arduino Core for Blue Sun OFP based on SAMD21 CPU
 
 This repository containts the source code and configuration files of the Arduino Core
-for Atmel's SAMD21 processor (used on the Arduino Zero board).
+for Atmel's SAMD21 processor (used on the Blue Sun board)
 
 ## Installation on Arduino IDE
 
-This core is available as a package in the Arduino IDE cores manager.
-Just open the "Boards Manager" and install the package called:
+TODO, I don't know yet
 
-"Arduino SAMD Boards (32-bit ARM Cortex-M0+)"
+## Support, Bugs and Issues
 
-## Support
+Just open an issue on one of the repositories:
 
-There is a dedicated section of the Arduino Forum for general discussion and project assistance:
+- Issues with bootloader or core: https://github.com/OpenFlashlightPlatform/bluesun-core/issues
+- Issues with the firmware: https://github.com/OpenFlashlightPlatform/firmware/issues
+- Issues with the hardware: https://github.com/OpenFlashlightPlatform/hardware/issues
 
-http://forum.arduino.cc/index.php?board=98.0
-
-## Bugs or Issues
-
-If you find a bug you can submit an issue here on github:
-
-https://github.com/arduino/ArduinoCore-samd/issues
-
-Before posting a new issue, please check if the same problem has been already reported by someone else
-to avoid duplicates.
+Opening issues for questions is okay
 
 ## Contributions
 
 Contributions are always welcome. The preferred way to receive code cotribution is by submitting a 
 Pull Request on github.
 
-## Hourly builds
-
-This repository is under a Continuos Integration system that every hour checks if there are updates and
-builds a release for testing (the so called "Hourly builds").
-
-The hourly builds are available through Boards Manager. If you want to install them:
-  1. Open the **Preferences** of the Arduino IDE.
-  2. Add this URL `http://downloads.arduino.cc/Hourly/samd/package_samd-hourly-build_index.json` in the **Additional Boards Manager URLs** field, and click OK.
-  3. Open the **Boards Manager** (menu Tools->Board->Board Manager...)
-  4. Install **Arduino SAMD core - Hourly build**
-  5. Select one of the boards under **SAMD Hourly build XX** in Tools->Board menu
-  6. Compile/Upload as usual
-
-If you already installed an hourly build and you want to update it with the latest:
-  1. Open the **Boards Manager** (menu Tools->Board->Board Manager...)
-  2. Remove **Arduino SAMD core - Hourly build**
-  3. Install again **Arduino SAMD core - Hourly build**, the Board Manager will download the latest build replacing the old one.
-
 ## License and credits
 
-This core has been developed by Arduino LLC in collaboration with Atmel.
+This project is heavily derived from the Arduino code for the Zero, and it retains it's GPL v2.1 license:
 
 ```
-  Copyright (c) 2015 Arduino LLC.  All right reserved.
+  Copyright (c) 2015 Arduino LLC.  
+  Copyright (c) 2016 Michael Andersen <m.andersen@cs.berkeley.edu>
+  
+  All right reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
