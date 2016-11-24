@@ -109,3 +109,23 @@ void board_init(void)
   PM->APBBSEL.reg = PM_APBBSEL_APBBDIV_DIV1_Val;
   PM->APBCSEL.reg = PM_APBCSEL_APBCDIV_DIV1_Val;
 }
+
+//If we know we are in bootloader mode, enable USB clock recovery
+//on the DFLL to compensate for the shoddy accuracy of the OSCULP
+void enable_clock_recovery()
+{
+  //Enable clock recovery mode. Our clock will initially be slow if it
+  //switches from the 32khz clock to the 1khz SOF
+  SYSCTRL->DFLLCTRL.bit.USBCRM = 1;
+
+  //Lets wait for it to lock, so we don't overclock during the transition
+  while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY)) {}
+
+  //We then adust our multiplier to bring us back up to 48Mhz
+  SYSCTRL->DFLLMUL.bit.MUL = 48000;
+
+  //Lets wait for it to lock, so we don't overclock during the transition
+  while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY)) {}
+
+  //The DFLL should be stable at 48Mhz from a recovered USB clock now
+}
