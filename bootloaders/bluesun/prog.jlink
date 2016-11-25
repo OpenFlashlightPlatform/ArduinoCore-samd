@@ -1,4 +1,4 @@
-speed 4000
+speed 100
 device atsamd21g18a
 loadbin bluesun.bin, 0
 r

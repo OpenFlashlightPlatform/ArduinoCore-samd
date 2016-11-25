@@ -21,6 +21,12 @@
 #include <sam.h>
 #include "board_definitions.h"
 
+
+#define NVMCTRL_OTP4   (0x00806020U)
+#define SYSCTRL_FUSES_OSC32KCAL_ADDR   (NVMCTRL_OTP4 + 4)
+#define SYSCTRL_FUSES_OSC32KCAL_Msk   (0x7Fu << SYSCTRL_FUSES_OSC32KCAL_Pos)
+#define SYSCTRL_FUSES_OSC32KCAL_Pos   6
+
 /**
  * \brief system_init() configures the needed clocks and according Flash Read Wait States.
  * At reset:
@@ -54,6 +60,15 @@ void board_init(void)
   PM->APBAMASK.reg = (PM_APBAMASK_PM | PM_APBAMASK_SYSCTRL |
                       PM_APBAMASK_GCLK);
 
+  uint32_t calib_val = ((*((uint32_t *) SYSCTRL_FUSES_OSC32KCAL_ADDR)) & SYSCTRL_FUSES_OSC32KCAL_Msk) >> SYSCTRL_FUSES_OSC32KCAL_Pos;
+
+  SYSCTRL->OSC32K.bit.CALIB = calib_val;
+  SYSCTRL->OSC32K.bit.STARTUP = 6;
+  SYSCTRL->OSC32K.bit.ONDEMAND = 0;
+  SYSCTRL->OSC32K.bit.RUNSTDBY = 1;
+  SYSCTRL->OSC32K.bit.EN32K = 1;
+  SYSCTRL->OSC32K.bit.ENABLE = 1;
+
   /* Set 1 Flash Wait State for 48MHz, cf tables 20.9 and 35.27 in SAMD21 Datasheet */
   NVMCTRL->CTRLB.bit.RWS = NVMCTRL_CTRLB_RWS_HALF_Val;
 
@@ -61,10 +76,10 @@ void board_init(void)
   GCLK->CTRL.reg = GCLK_CTRL_SWRST;
   while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
 
-  /* Setup OSCULP32K to feed Clock generator 1 with 32.768kHz */
+  /* Setup OSC32K to feed Clock generator 1 with 32.768kHz */
   GCLK->GENDIV.reg  = (GCLK_GENDIV_ID(1)   | GCLK_GENDIV_DIV(0));
   GCLK->GENCTRL.reg = (GCLK_GENCTRL_ID(1)  | GCLK_GENCTRL_GENEN |
-           GCLK_GENCTRL_SRC_OSCULP32K);
+                       GCLK_GENCTRL_SRC_OSC32K);
 
   /* Setup Clock generator 1 to feed DFLL48M with 32.768kHz */
   GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_GEN(1) | GCLK_CLKCTRL_CLKEN |
@@ -78,11 +93,14 @@ void board_init(void)
   SYSCTRL->DFLLCTRL.bit.RUNSTDBY = 0; // Sleep in STANDBY mode
 
   SYSCTRL->DFLLCTRL.bit.MODE   = 1;     // Closed loop mode
-  SYSCTRL->DFLLCTRL.bit.QLDIS  = 0;     // Quick lock is enabled
+  SYSCTRL->DFLLCTRL.bit.QLDIS  = 1;     // Quick lock is enabled
+  SYSCTRL->DFLLCTRL.bit.WAITLOCK = 1;
   SYSCTRL->DFLLCTRL.bit.CCDIS  = 0;	  // Chill cycle is enabled
   SYSCTRL->DFLLCTRL.bit.LLAW   = 0;     // Locks will not be lost after waking up from sleep modes
   SYSCTRL->DFLLMUL.bit.CSTEP   = 0x1f/4;
   SYSCTRL->DFLLMUL.bit.FSTEP   = 0xff/4;
+//  SYSCTRL->DFLLCTRL.bit.USBCRM = 1;
+//  SYSCTRL->DFLLMUL.bit.MUL = 48000;
   SYSCTRL->DFLLMUL.bit.MUL     = 1465; //For 48 Mhz from 32768
   SYSCTRL->DFLLCTRL.bit.ENABLE = 1;     // Enable DFLL
 
