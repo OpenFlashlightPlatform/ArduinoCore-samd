@@ -51,44 +51,28 @@ void SystemInit( void )
   /* Turn on the digital interface clock */
   PM->APBAMASK.reg |= PM_APBAMASK_GCLK ;
 
-  /* ----------------------------------------------------------------------------------------------
-   * 1) Enable XOSC32K clock (External on-board 32.768Hz oscillator)
-   */
-  SYSCTRL->XOSC32K.reg = SYSCTRL_XOSC32K_STARTUP( 0x6u ) | /* cf table 15.10 of product datasheet in chapter 15.8.6 */
-                         SYSCTRL_XOSC32K_XTALEN | SYSCTRL_XOSC32K_EN32K ;
-  SYSCTRL->XOSC32K.bit.ENABLE = 1 ; /* separate call, as described in chapter 15.6.3 */
+  uint32_t calib_val = ((*((uint32_t *) SYSCTRL_FUSES_OSC32KCAL_ADDR)) & SYSCTRL_FUSES_OSC32KCAL_Msk) >> SYSCTRL_FUSES_OSC32KCAL_Pos;
 
-  while ( (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_XOSC32KRDY) == 0 )
-  {
-    /* Wait for oscillator stabilization */
-  }
+  SYSCTRL->OSC32K.bit.CALIB = calib_val;
+  SYSCTRL->OSC32K.bit.STARTUP = 6;
+  SYSCTRL->OSC32K.bit.ONDEMAND = 0;
+  SYSCTRL->OSC32K.bit.RUNSTDBY = 1;
+  SYSCTRL->OSC32K.bit.EN32K = 1;
+  SYSCTRL->OSC32K.bit.ENABLE = 1;
 
-  /* Software reset the module to ensure it is re-initialized correctly */
-  /* Note: Due to synchronization, there is a delay from writing CTRL.SWRST until the reset is complete.
-   * CTRL.SWRST and STATUS.SYNCBUSY will both be cleared when the reset is complete, as described in chapter 13.8.1
-   */
-  GCLK->CTRL.reg = GCLK_CTRL_SWRST ;
+  /* reset the GCLK module so it is in a known state */
+  GCLK->CTRL.reg = GCLK_CTRL_SWRST;
+  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
 
-  while ( (GCLK->CTRL.reg & GCLK_CTRL_SWRST) && (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) )
-  {
-    /* Wait for reset to complete */
-  }
+  /* Setup OSC32K to feed Clock generator 1 with 32.768kHz */
+  GCLK->GENDIV.reg  = (GCLK_GENDIV_ID(1)   | GCLK_GENDIV_DIV(0));
+  GCLK->GENCTRL.reg = (GCLK_GENCTRL_ID(1)  | GCLK_GENCTRL_GENEN |
+                       GCLK_GENCTRL_SRC_OSC32K);
 
-  /* ----------------------------------------------------------------------------------------------
-   * 2) Put XOSC32K as source of Generic Clock Generator 1
-   */
-  GCLK->GENDIV.reg = GCLK_GENDIV_ID( GENERIC_CLOCK_GENERATOR_XOSC32K ) ; // Generic Clock Generator 1
+  /* Setup Clock generator 1 to feed DFLL48M with 32.768kHz */
+  GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_GEN(1) | GCLK_CLKCTRL_CLKEN |
+                       GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_DFLL48_Val));
 
-  while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY )
-  {
-    /* Wait for synchronization */
-  }
-
-  /* Write Generic Clock Generator 1 configuration */
-  GCLK->GENCTRL.reg = GCLK_GENCTRL_ID( GENERIC_CLOCK_GENERATOR_XOSC32K ) | // Generic Clock Generator 1
-                      GCLK_GENCTRL_SRC_XOSC32K | // Selected source is External 32KHz Oscillator
-//                      GCLK_GENCTRL_OE | // Output clock to a pin for tests
-                      GCLK_GENCTRL_GENEN ;
 
   while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY )
   {
