@@ -285,4 +285,6 @@ _Pragma("pack()")
 /* bFunctionLength, bDescriptorType, bDescriptorSubtype, function specific data0, functional specific data N-1
  * CS_INTERFACE 24h */
 
+extern void USB_SetHandler(void (*pf_isr)(void));
+
 #endif

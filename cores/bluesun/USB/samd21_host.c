@@ -1,3 +1,4 @@
+#if __REMOVED__
 /*
   Copyright (c) 2014 Arduino LLC.  All right reserved.
 
@@ -458,7 +459,7 @@ void UHD_Pipe_Send(uint32_t ul_pipe, uint32_t ul_token_type)
 		USB->HOST.HostPipe[ul_pipe].PINTFLAG.reg = USB_HOST_PINTFLAG_TRCPT(1);  // Transfer Complete 0
 		USB->HOST.HostPipe[ul_pipe].PSTATUSSET.reg = USB_HOST_PSTATUSSET_BK0RDY;
 	}
-   
+
 	// Unfreeze pipe
     uhd_unfreeze_pipe(ul_pipe);
 }
@@ -500,7 +501,7 @@ uint32_t UHD_Pipe_Is_Transfer_Complete(uint32_t ul_pipe, uint32_t ul_token_type)
             return 1;
          }
 		 break;
- 
+
       case USB_HOST_PCFG_PTOKEN_OUT:
          if (Is_uhd_out_ready(ul_pipe))
          {
@@ -524,3 +525,4 @@ uint32_t UHD_Pipe_Is_Transfer_Complete(uint32_t ul_pipe, uint32_t ul_token_type)
 // }
 
 #endif //  HOST_DEFINED
+#endif

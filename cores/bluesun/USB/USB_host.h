@@ -1,3 +1,4 @@
+#if __REMOVED__
 /*
   Copyright (c) 2014 Arduino LLC.  All right reserved.
 
@@ -64,3 +65,4 @@ extern uint32_t UHD_Pipe_Is_Transfer_Complete(uint32_t ul_pipe, uint32_t ul_toke
 #endif
 
 #endif /* USB_HOST_H_INCLUDED */
+#endif

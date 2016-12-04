@@ -43,6 +43,11 @@
 // Constants for Clock multiplexers
 #define GENERIC_CLOCK_MULTIPLEXER_DFLL48M (0u)
 
+#define NVMCTRL_OTP4   (0x00806020U)
+#define SYSCTRL_FUSES_OSC32KCAL_ADDR   (NVMCTRL_OTP4 + 4)
+#define SYSCTRL_FUSES_OSC32KCAL_Msk   (0x7Fu << SYSCTRL_FUSES_OSC32KCAL_Pos)
+#define SYSCTRL_FUSES_OSC32KCAL_Pos   6
+
 void SystemInit( void )
 {
   /* Set 1 Flash Wait State for 48MHz, cf tables 20.9 and 35.27 in SAMD21 Datasheet */
