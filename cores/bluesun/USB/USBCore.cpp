@@ -26,6 +26,9 @@
 #include <stdint.h>
 #include <limits.h>
 
+extern "C" {
+extern void USB_SetHandler(void (*pf_isr)(void));
+}
 USBDevice_SAMD21G18x usbd;
 
 /** Pulse generation counters to keep track of the number of milliseconds remaining for each pulse type */
