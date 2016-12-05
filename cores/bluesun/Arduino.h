@@ -87,6 +87,7 @@ void loop( void ) ;
 #include "wiring_analog.h"
 #include "wiring_shift.h"
 #include "WInterrupts.h"
+#include "skookum.h"
 
 // undefine stdlib's abs if encountered
 #ifdef abs
