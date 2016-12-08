@@ -41,17 +41,22 @@ void skookumADC_init(uint32_t pin) {
   ADC->REFCTRL.bit.REFSEL = ADC_REFCTRL_REFSEL_INT1V_Val;   // 1.0V voltage reference
   syncADC();
   ADC->REFCTRL.bit.REFCOMP = 1; //Increase gain stage accuracy
+  //ADC->REFCTRL.bit.REFCOMP = 0; //Increase gain stage accuracy
   syncADC();
   //XTAG can we get acceptable results without having this ludicrously low sample rate?
-  ADC->CTRLB.reg = ADC_CTRLB_PRESCALER_DIV512 |    // Divide Clock by 512.
+  ADC->CTRLB.reg = ADC_CTRLB_PRESCALER_DIV32 |    // Divide Clock by 32.
                    ADC_CTRLB_RESSEL_16BIT;         // 10 bits resolution as default
 
-  ADC->SAMPCTRL.reg = 0x3f;                        // Set max Sampling Time Length
+  ADC->SAMPCTRL.reg = 0x8;//0x3f;                        // Set max Sampling Time Length
   syncADC();
-  ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXNEG_GND;   // No Negative input (Internal Ground)
+  ADC->CTRLB.bit.DIFFMODE = 0x1;             // Differential
+  syncADC();
+  ADC->INPUTCTRL.bit.INPUTSCAN = 0;
+  syncADC();
+  ADC->INPUTCTRL.bit.INPUTOFFSET = 0;
   syncADC();
   // Averaging (see datasheet table in AVGCTRL register description)
-  ADC->AVGCTRL.reg = ADC_AVGCTRL_SAMPLENUM_64 |    // 64 samples (16 bits, 4x oversample)
+  ADC->AVGCTRL.reg = ADC_AVGCTRL_SAMPLENUM_128 |    // 128 samples (16 bits, 8x oversample)
                      ADC_AVGCTRL_ADJRES(0x0ul);   // Adjusting result by 0
   syncADC();
 }

@@ -85,8 +85,8 @@ extern "C"
 // #define PIN_LED3             PIN_LED_TXL
 // #define LED_BUILTIN          PIN_LED_13
 
-#define PIN_LOAD_SW  (12ul)
-#define PIN_BOOST_SW (13ul)
+#define PIN_LOAD_SW  (13ul)
+#define PIN_BOOST_SW (12ul)
 
 static const uint8_t LOAD_SW = PIN_LOAD_SW;
 static const uint8_t BOOST_SW = PIN_BOOST_SW;
